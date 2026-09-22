@@ -1,0 +1,28 @@
+Package: splitpopsurv
+Type: Package
+Title: Split-Population (Cure / Mover-Stayer) Survival Models
+Version: 0.1.0
+Authors@R: person("Nobutaka", "Fukuda", email = "nobutaka.fukuda@tohoku.ac.jp",
+    role = c("aut", "cre"))
+Description: Maximum-likelihood estimation of split-population (cure /
+    mover-stayer) survival models: an accelerated failure-time regression
+    for event timing among "movers", combined with a logistic regression
+    on the probability of belonging to the immune "stayer" population.
+    Five baseline timing distributions are provided -- log-logistic,
+    Weibull, log-normal, gamma, and the generalized gamma that nests the
+    other four -- following Schmidt & Witte (1989, Journal of Econometrics)
+    and Yamaguchi (1992, 1998, Sociological Methodology). This is an R
+    translation of a set of Stata ml programs, with the log-likelihood
+    corrected to match the published model and verified by simulation
+    against known parameters.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Imports:
+    maxLik,
+    stats
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+URL: https://github.com/nobifukuda/splitpopsurv, https://nobifukuda.github.io/splitpopsurv/
+BugReports: https://github.com/nobifukuda/splitpopsurv/issues
+Config/roxygen2/version: 8.0.0

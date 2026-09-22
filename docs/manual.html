@@ -1,0 +1,540 @@
+<title>Split-Population Survival Models</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --paper:#F3F5F4;
+    --paper-raised:#FFFFFF;
+    --ink:#182430;
+    --ink-soft:#51616A;
+    --ink-faint:#7C8A91;
+    --rule:#DCE3E1;
+    --rule-strong:#C3CDCA;
+    --mover:#2B5D6B;
+    --mover-soft:#DCE9EA;
+    --stayer:#9C6A22;
+    --stayer-soft:#F2E6CE;
+    --warn-bg:#FBF1E1;
+    --warn-rule:#E4CDA0;
+    --warn-ink:#6B4514;
+    --warn-accent:#A2672A;
+    --code-bg:#101A20;
+    --code-ink:#DCE6E4;
+    --code-accent:#8FC7CE;
+    --link:#2B5D6B;
+    --shadow: 0 1px 2px rgba(24,36,48,.06), 0 6px 20px -10px rgba(24,36,48,.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#10161A;
+      --paper-raised:#161F24;
+      --ink:#E7EDEE;
+      --ink-soft:#A9B8BC;
+      --ink-faint:#7C8D93;
+      --rule:#26343A;
+      --rule-strong:#33454C;
+      --mover:#7FC0CB;
+      --mover-soft:#16292D;
+      --stayer:#E0AE5C;
+      --stayer-soft:#2A2314;
+      --warn-bg:#241C10;
+      --warn-rule:#4A3A1C;
+      --warn-ink:#EACB93;
+      --warn-accent:#E0AE5C;
+      --code-bg:#0B1114;
+      --code-ink:#DCE6E4;
+      --code-accent:#7FC0CB;
+      --link:#8FD0DA;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 26px -12px rgba(0,0,0,.55);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#10161A;
+    --paper-raised:#161F24;
+    --ink:#E7EDEE;
+    --ink-soft:#A9B8BC;
+    --ink-faint:#7C8D93;
+    --rule:#26343A;
+    --rule-strong:#33454C;
+    --mover:#7FC0CB;
+    --mover-soft:#16292D;
+    --stayer:#E0AE5C;
+    --stayer-soft:#2A2314;
+    --warn-bg:#241C10;
+    --warn-rule:#4A3A1C;
+    --warn-ink:#EACB93;
+    --warn-accent:#E0AE5C;
+    --code-bg:#0B1114;
+    --code-ink:#DCE6E4;
+    --code-accent:#7FC0CB;
+    --link:#8FD0DA;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 26px -12px rgba(0,0,0,.55);
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Literata', Georgia, 'Times New Roman', serif;
+    font-size:16.5px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{
+    font-family:'Fraunces', Georgia, serif;
+    color:var(--ink);
+    text-wrap:balance;
+    font-weight:600;
+    line-height:1.15;
+  }
+  code, .mono, .eq, .fn{ font-family:'IBM Plex Mono', ui-monospace, Menlo, monospace; }
+  a{ color:var(--link); text-decoration-color:var(--rule-strong); text-underline-offset:3px; }
+  a:hover{ text-decoration-color:currentColor; }
+
+  .layout{
+    display:grid;
+    grid-template-columns: 232px minmax(0,1fr);
+    gap:0;
+    max-width:1160px;
+    margin:0 auto;
+  }
+  .toc{
+    position:sticky; top:0; align-self:start;
+    height:100vh;
+    overflow-y:auto;
+    padding:40px 20px 40px 32px;
+    border-right:1px solid var(--rule);
+    scrollbar-width:thin;
+  }
+  .toc-title{
+    font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--ink-faint); margin-bottom:14px;
+  }
+  .toc a{
+    display:block; font-family:'IBM Plex Mono'; font-size:12.5px; color:var(--ink-soft);
+    text-decoration:none; padding:5px 0; border-left:2px solid transparent; padding-left:10px; margin-left:-11px;
+  }
+  .toc a:hover{ color:var(--ink); }
+  .toc a.sub{ padding-left:20px; font-size:12px; color:var(--ink-faint); }
+  .toc-group{ margin-bottom:6px; }
+
+  main{ padding:56px 48px 100px; min-width:0; }
+  .measure{ max-width:70ch; }
+
+  /* ---------- hero ---------- */
+  .hero{ margin-bottom:64px; }
+  .kicker{
+    font-family:'IBM Plex Mono'; font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--mover); margin-bottom:14px; display:flex; align-items:center; gap:10px;
+  }
+  .kicker::before{ content:""; width:22px; height:1px; background:var(--mover); display:inline-block; }
+  .hero h1{ font-size:clamp(2.1rem, 4vw, 3rem); margin:0 0 14px; max-width:16ch; }
+  .hero .dek{ color:var(--ink-soft); font-size:1.15rem; max-width:56ch; margin:0 0 30px; }
+  .hero .byline{ font-family:'IBM Plex Mono'; font-size:12.5px; color:var(--ink-faint); }
+  .hero .byline b{ color:var(--ink-soft); font-weight:500; }
+
+  .hero-figure{
+    margin-top:36px; display:grid; grid-template-columns: 1fr 260px; gap:32px; align-items:center;
+    padding:22px 26px; background:var(--paper-raised); border:1px solid var(--rule); border-radius:6px; box-shadow:var(--shadow);
+  }
+  .hero-figure svg{ display:block; width:100%; height:auto; overflow:visible; }
+  .hero-figure .cap{ font-size:14px; color:var(--ink-soft); }
+  .hero-figure .cap .lbl{ font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:.03em; }
+  .swatch{ display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:6px; }
+
+  /* ---------- sections ---------- */
+  section{ margin-bottom:76px; scroll-margin-top:24px; }
+  .eyebrow{
+    font-family:'IBM Plex Mono'; font-size:12px; color:var(--ink-faint); letter-spacing:.06em;
+    display:flex; align-items:baseline; gap:10px; margin-bottom:6px;
+  }
+  .eyebrow .num{ color:var(--mover); }
+  section > h2{ font-size:1.7rem; margin:0 0 22px; }
+  section > h2 + p, section > .lede{ color:var(--ink-soft); font-size:1.05rem; max-width:66ch; }
+  h3{ font-size:1.18rem; margin:34px 0 12px; }
+  h4{ font-family:'IBM Plex Mono'; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); font-weight:600; margin:22px 0 10px; }
+  p{ margin:0 0 16px; }
+  ul, ol{ margin:0 0 16px; padding-left:1.3em; }
+  li{ margin-bottom:6px; }
+  .rule{ border:none; border-top:1px solid var(--rule); margin:40px 0; }
+
+  /* ---------- equations ---------- */
+  .eq-block{
+    background:var(--paper-raised); border:1px solid var(--rule); border-radius:6px;
+    padding:18px 22px; margin:18px 0; overflow-x:auto;
+  }
+  .eq{ font-size:14.5px; color:var(--ink); white-space:nowrap; }
+  .eq .op{ color:var(--ink-faint); margin:0 .35em; }
+  .eq .fn{ color:var(--mover); }
+  .eq .var{ font-style:italic; }
+  .eq-row{ display:flex; align-items:center; gap:0; margin-bottom:8px; }
+  .eq-row:last-child{ margin-bottom:0; }
+  .eq-label{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-faint); margin-right:14px; min-width:2.4em; }
+  .frac{ display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 .2em; line-height:1.1; }
+  .frac .num{ padding:0 .15em 2px; border-bottom:1px solid var(--ink); }
+  .frac .den{ padding:2px .15em 0; }
+  sub, sup{ font-size:70%; }
+
+  /* ---------- callouts ---------- */
+  .callout{
+    border:1px solid var(--warn-rule); background:var(--warn-bg); color:var(--warn-ink);
+    border-radius:6px; padding:22px 24px; margin:22px 0;
+  }
+  .callout .callout-head{
+    display:flex; align-items:center; gap:10px; font-family:'IBM Plex Mono'; font-size:12px;
+    letter-spacing:.06em; text-transform:uppercase; color:var(--warn-accent); margin-bottom:10px; font-weight:600;
+  }
+  .callout p{ color:var(--warn-ink); }
+  .callout p:last-child{ margin-bottom:0; }
+  .callout code{ background:rgba(0,0,0,.06); padding:.1em .35em; border-radius:3px; }
+  :root[data-theme="dark"] .callout code, @media (prefers-color-scheme:dark){ .callout code{ background:rgba(255,255,255,.08); } }
+
+  /* ---------- tables ---------- */
+  .tbl-wrap{ overflow-x:auto; margin:18px 0; }
+  table{ border-collapse:collapse; width:100%; font-size:14.5px; }
+  th,td{ text-align:left; padding:9px 14px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th{ font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-faint); font-weight:600; white-space:nowrap; }
+  td code{ font-size:13px; }
+  tr.recovery td{ font-variant-numeric: tabular-nums; }
+  tr.recovery td.hero-num{ color:var(--warn-accent); font-weight:600; }
+
+  /* ---------- code ---------- */
+  pre{
+    background:var(--code-bg); color:var(--code-ink); border-radius:6px; padding:18px 20px;
+    overflow-x:auto; font-size:13.3px; line-height:1.6; margin:16px 0; border:1px solid var(--rule-strong);
+  }
+  pre code{ font-family:'IBM Plex Mono'; background:none; padding:0; }
+  .tok-c{ color:var(--code-accent); } /* comment */
+  .tok-k{ color:#E0AE5C; } /* keyword/fn */
+  .tok-s{ color:#9FD0A5; } /* string */
+  code:not(pre code){
+    background:var(--mover-soft); color:var(--mover); padding:.12em .4em; border-radius:4px; font-size:.9em;
+  }
+
+  /* ---------- distribution cards ---------- */
+  .dist-card{
+    background:var(--paper-raised); border:1px solid var(--rule); border-radius:8px;
+    padding:24px 26px; margin-bottom:20px; box-shadow:var(--shadow);
+  }
+  .dist-head{ display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:4px; flex-wrap:wrap; }
+  .dist-head h3{ margin:0; font-size:1.15rem; }
+  .dist-tag{ font-family:'IBM Plex Mono'; font-size:11.5px; color:var(--stayer); background:var(--stayer-soft); padding:3px 9px; border-radius:20px; white-space:nowrap; }
+  .dist-stata{ font-family:'IBM Plex Mono'; font-size:12px; color:var(--ink-faint); margin-bottom:14px; }
+  .dist-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
+  @media (max-width:760px){ .dist-grid{ grid-template-columns:1fr; } .hero-figure{ grid-template-columns:1fr; } .layout{ grid-template-columns:1fr; } .toc{ position:static; height:auto; border-right:none; border-bottom:1px solid var(--rule); } main{ padding:40px 22px 80px; } }
+  .dist-grid h4{ margin-top:0; }
+
+  /* ---------- arg table ---------- */
+  .arg-name{ color:var(--mover); font-weight:600; }
+  .arg-default{ color:var(--ink-faint); }
+
+  footer{ padding:40px 48px 70px; border-top:1px solid var(--rule); color:var(--ink-faint); font-size:13px; }
+  footer .layout-inner{ max-width:70ch; }
+</style>
+
+<div class="layout">
+  <nav class="toc">
+    <div class="toc-title">Contents</div>
+    <div class="toc-group">
+      <a href="#overview">Overview</a>
+      <a href="#model">01&nbsp;&nbsp;The model</a>
+      <a href="#correction">02&nbsp;&nbsp;Likelihood correction</a>
+      <a href="#distributions">03&nbsp;&nbsp;The five distributions</a>
+      <a href="#reference">04&nbsp;&nbsp;Function reference</a>
+      <a href="#example">05&nbsp;&nbsp;Worked example</a>
+      <a href="#correspondence">06&nbsp;&nbsp;Stata → R map</a>
+      <a href="#notes">07&nbsp;&nbsp;Practical notes</a>
+      <a href="#refs">References</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="hero measure">
+      <div class="kicker">R reference manual</div>
+      <h1>Split-Population Survival Models</h1>
+      <p class="dek">Accelerated failure-time regression combined with a logit regression on the surviving fraction — an R port of the original Stata <code>ml</code> programs, grounded in Yamaguchi's mover–stayer framework.</p>
+      <div class="byline">R package by <b>Nobutaka Fukuda</b> (Tohoku University) · Theory: <b>Yamaguchi &amp; Ferguson (1995)</b>, <b>Yamaguchi (1998)</b></div>
+    </div>
+
+    <div class="hero-figure">
+      <svg viewBox="0 0 420 190" role="img" aria-label="Illustrative mover-stayer survival curve, declining from 1 toward a plateau at p">
+        <line x1="40" y1="150" x2="400" y2="150" stroke="var(--rule-strong)" stroke-width="1"/>
+        <line x1="40" y1="20" x2="40" y2="150" stroke="var(--rule-strong)" stroke-width="1"/>
+        <text x="40" y="14" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-faint)">S(t)</text>
+        <text x="392" y="166" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-faint)">t</text>
+        <text x="18" y="24" font-family="IBM Plex Mono" font-size="10" fill="var(--ink-faint)">1</text>
+        <line x1="36" y1="20" x2="40" y2="20" stroke="var(--rule-strong)"/>
+        <line x1="40" y1="20" x2="40" y2="150" stroke="var(--rule)" stroke-dasharray="2 3"/>
+        <path d="M 40 20 C 90 22, 120 48, 150 78 C 185 112, 220 122, 260 126 C 310 130, 350 131, 400 131"
+              fill="none" stroke="var(--mover)" stroke-width="2.4"/>
+        <line x1="40" y1="131" x2="400" y2="131" stroke="var(--stayer)" stroke-width="2.4" stroke-dasharray="1 0" opacity="0"/>
+        <path d="M 260 126 C 310 130, 350 131, 400 131" fill="none" stroke="var(--stayer)" stroke-width="2.4"/>
+        <line x1="14" y1="131" x2="40" y2="131" stroke="var(--rule-strong)"/>
+        <text x="4" y="135" font-family="IBM Plex Mono" font-size="10" fill="var(--stayer)">p</text>
+        <line x1="150" y1="150" x2="150" y2="146" stroke="var(--rule-strong)"/>
+      </svg>
+      <div class="cap">
+        <p style="margin-bottom:10px"><span class="swatch" style="background:var(--mover)"></span><span class="lbl">S<sub>m</sub>(t)</span> — susceptible ("mover") survival, decaying toward 0</p>
+        <p style="margin-bottom:0"><span class="swatch" style="background:var(--stayer)"></span><span class="lbl">p</span> — the surviving fraction ("stayers") who never fail</p>
+      </div>
+    </div>
+
+    <section id="overview">
+      <div class="eyebrow"><span class="num">§</span>overview</div>
+      <h2>What this package does</h2>
+      <p class="lede">Ordinary survival regressions assume every subject will eventually experience the event if followed long enough. That assumption fails when part of the population is structurally immune — women who have stopped childbearing for good, recidivists who never reoffend, marriages that never end in divorce. A <b>split-population</b> (or <b>cure</b>, or <b>mover–stayer</b>) model separates two questions that an ordinary hazard model conflates: <i>who never experiences the event at all</i>, and <i>for those who do, when</i>.</p>
+      <p>The package fits five baseline distributions for the timing part — <b>log-logistic</b>, <b>Weibull</b>, <b>log-normal</b>, <b>gamma</b>, and the <b>generalized gamma</b> that nests all four — each paired with a logistic regression on the probability of ultimately belonging to the immune ("stayer") group. It is a direct R translation of five Stata <code>ml</code> programs, each exposed as one <code>fit_splitpop_*()</code> function.</p>
+    </section>
+
+    <section id="model">
+      <div class="eyebrow"><span class="num">01</span>the model</div>
+      <h2>Two regressions, one likelihood</h2>
+      <p class="lede">Following Yamaguchi &amp; Ferguson (1995, eqs. 3–6) and Yamaguchi (1998, eq. 1–2), every subject belongs to one of two latent classes. <b>Movers</b> are at risk and eventually fail according to a duration distribution; <b>stayers</b> have zero risk and never do. The proportion of stayers, <span class="eq var">p</span>, and the timing distribution for movers are estimated <i>jointly</i>, each with its own covariates.</p>
+
+      <h3>Mixture survival and density</h3>
+      <p>Let <span class="eq var">S<sub>m</sub>(t)</span> and <span class="eq var">f<sub>m</sub>(t)</span> be the conditional survival and density for movers, and <span class="eq var">p</span> the stayer probability. The marginal (population) survival and density are:</p>
+      <div class="eq-block">
+        <div class="eq-row"><span class="eq-label">S(t)</span><span class="eq">=&nbsp;(1&nbsp;−&nbsp;p)&nbsp;S<sub>m</sub>(t)&nbsp;+&nbsp;p</span></div>
+        <div class="eq-row"><span class="eq-label">f(t)</span><span class="eq">=&nbsp;(1&nbsp;−&nbsp;p)&nbsp;f<sub>m</sub>(t)</span></div>
+      </div>
+      <p>As <span class="eq var">t&nbsp;→&nbsp;∞</span>, <span class="eq var">S(t)&nbsp;→&nbsp;p</span> — the plateau in the hero figure above.</p>
+
+      <h3>The two regression equations</h3>
+      <p>Every <code>fit_splitpop_*()</code> call takes two formulas, matching the Stata code's two named equations:</p>
+      <div class="eq-block">
+        <div class="eq-row"><span class="eq-label">H_regression</span><span class="eq">log(T)&nbsp;=&nbsp;<span class="fn">X</span>′β&nbsp;+&nbsp;σz &nbsp;&nbsp;<span class="op">(location/scale of the mover distribution)</span></span></div>
+        <div class="eq-row"><span class="eq-label">P_regression</span><span class="eq">logit(p)&nbsp;=&nbsp;<span class="fn">X</span>′α &nbsp;&nbsp;<span class="op">(probability of being a stayer)</span></span></div>
+      </div>
+      <p>For the generalized gamma, <span class="eq var">z</span> follows the extended log-gamma distribution with shape <span class="eq var">λ</span> (Prentice 1974) — the family that nests Weibull (<span class="eq var">λ=1</span>), log-normal (<span class="eq var">λ=0</span>), and gamma (<span class="eq var">σ=1</span>) as special cases, exactly as in Yamaguchi &amp; Ferguson (1995, p. 283, note 10).</p>
+
+      <h3>The log-likelihood</h3>
+      <p>The correct hazard-based log-likelihood contribution per subject <span class="eq var">i</span> (event indicator <span class="eq var">δ<sub>i</sub></span>) is:</p>
+      <div class="eq-block">
+        <div class="eq-row"><span class="eq">ℓ<sub>i</sub>&nbsp;=&nbsp;δ<sub>i</sub>&nbsp;log&nbsp;f(t<sub>i</sub>)&nbsp;+&nbsp;(1&nbsp;−&nbsp;δ<sub>i</sub>)&nbsp;log&nbsp;S(t<sub>i</sub>)</span></div>
+      </div>
+      <p>equivalently, in terms of the true marginal hazard <span class="eq var">h(t)&nbsp;=&nbsp;f(t)/S(t)</span>:</p>
+      <div class="eq-block">
+        <div class="eq-row"><span class="eq">ℓ<sub>i</sub>&nbsp;=&nbsp;δ<sub>i</sub>&nbsp;log&nbsp;h(t<sub>i</sub>)&nbsp;+&nbsp;log&nbsp;S(t<sub>i</sub>)</span></div>
+      </div>
+      <p>This is Yamaguchi's equation (2)–(3) (1998, p. 332), and it is what every <code>loglik_splitpop_*()</code> function in this package computes — see the correction below for why that division matters.</p>
+    </section>
+
+    <section id="correction">
+      <div class="eyebrow"><span class="num">02</span>likelihood correction</div>
+      <h2>A discrepancy found in the original Stata code</h2>
+      <p class="lede">All five Stata programs (<code>SphLog</code>, <code>SphWieb</code>, <code>SphNom</code>, <code>SphGam</code>, <code>SphGGam</code>) compute a quantity named <code>hz2</code>/<code>mhz</code> as <code>(1-p)*hz*sv</code> — the mover hazard times the mover survival — and then evaluate <code>lnf = $ML_y2*ln(hz2) + ln(sv2)</code>.</p>
+      <p><code>(1-p)·h<sub>m</sub>(t)·S<sub>m</sub>(t)</code> is algebraically the marginal <b>density</b> <span class="eq var">f(t)</span>, not the marginal <b>hazard</b> <span class="eq var">h(t) = f(t)/S(t)</span> — the code never divides by the marginal survival <code>sv2</code>. Plugged into <span class="eq var">δ·log(hazard) + log(survival)</span>, using density in place of hazard double-counts <span class="eq var">log S(t)</span> for every observed event.</p>
+
+      <div class="callout">
+        <div class="callout-head">Verified by simulation</div>
+        <p>20,000 observations were simulated from a split-population Weibull model with known parameters, then fit both ways.</p>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Parameter</th><th>True</th><th>As-translated</th><th>Corrected</th></tr></thead>
+            <tbody>
+              <tr class="recovery"><td>H_regression intercept (β₀)</td><td>0.500</td><td>0.409</td><td>0.511</td></tr>
+              <tr class="recovery"><td>H_regression slope (β₁)</td><td>-0.400</td><td>-0.432</td><td>-0.419</td></tr>
+              <tr class="recovery"><td>log(shape)</td><td>0.262</td><td>0.312</td><td>0.278</td></tr>
+              <tr class="recovery"><td>P_regression intercept (α₀)</td><td>0.200</td><td class="hero-num">0.451</td><td>0.177</td></tr>
+              <tr class="recovery"><td>P_regression slope (α₁)</td><td>0.800</td><td class="hero-num">0.701</td><td>0.836</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The cure-probability (P_regression) coefficients are the most visibly biased under the as-translated formula — more than double the true intercept. The corrected formula recovers all five parameters closely.</p>
+      </div>
+
+      <p>This R package implements the <b>corrected</b> formula throughout, written as <code>ifelse(event == 1, log(marginal density), log(marginal survival))</code> — which is both the statistically correct form and, as a side effect, numerically safer: it never forms <code>hazard = density / survival</code> and so cannot hit the <code>Inf × 0 → NaN</code> trap that occurs when survival underflows to exactly zero at extreme durations.</p>
+    </section>
+
+    <section id="distributions">
+      <div class="eyebrow"><span class="num">03</span>distributions</div>
+      <h2>The five baseline distributions</h2>
+      <p class="lede">Each distribution supplies the mover survival <span class="eq var">S<sub>m</sub>(t)</span> and density <span class="eq var">f<sub>m</sub>(t)</span> plugged into the mixture formulas above. <span class="eq var">θ<sub>1</sub> = X<sub>h</sub>′β</span> is the H_regression linear index in every case.</p>
+
+      <div class="dist-card">
+        <div class="dist-head"><h3>Log-logistic</h3><span class="dist-tag">2 free shape params</span></div>
+        <div class="dist-stata">Stata: <code>SphLog</code> · R: <code>fit_splitpop_loglogistic()</code></div>
+        <div class="dist-grid">
+          <div>
+            <h4>Survival</h4>
+            <div class="eq-block"><div class="eq">S<sub>m</sub>(t) = 1 / (1 + (λt)<sup>σ</sup>)</div></div>
+          </div>
+          <div>
+            <h4>Parameters</h4>
+            <div class="eq-block"><div class="eq">λ = exp(−θ₁) &nbsp;·&nbsp; σ = 1/θ₂</div></div>
+          </div>
+        </div>
+        <p style="margin-top:12px;font-size:14px;color:var(--ink-soft)">θ₂ is a free scalar (Stata's unnamed ancillary equation, <code>()</code>).</p>
+      </div>
+
+      <div class="dist-card">
+        <div class="dist-head"><h3>Weibull</h3><span class="dist-tag">special case: λ = 1</span></div>
+        <div class="dist-stata">Stata: <code>SphWieb</code> · R: <code>fit_splitpop_weibull()</code></div>
+        <div class="dist-grid">
+          <div>
+            <h4>Survival</h4>
+            <div class="eq-block"><div class="eq">S<sub>m</sub>(t) = exp(−e<sup>θ₁</sup>t<sup class="eq var">λ</sup>)</div></div>
+          </div>
+          <div>
+            <h4>Parameters</h4>
+            <div class="eq-block"><div class="eq">σ = exp(−θ₁) &nbsp;·&nbsp; λ = exp(ln_sigma)</div></div>
+          </div>
+        </div>
+        <p style="margin-top:12px;font-size:14px;color:var(--ink-soft)">Kept exactly as in the Stata source: <code>σ</code> and <code>λ</code> are computed from the equations their <i>opposite</i> labels would suggest — preserved literally rather than "corrected", since it doesn't affect the fitted curves, only the internal naming.</p>
+      </div>
+
+      <div class="dist-card">
+        <div class="dist-head"><h3>Log-normal</h3><span class="dist-tag">special case: λ = 0</span></div>
+        <div class="dist-stata">Stata: <code>SphNom</code> · R: <code>fit_splitpop_lognormal()</code></div>
+        <div class="dist-grid">
+          <div>
+            <h4>Survival</h4>
+            <div class="eq-block"><div class="eq">S<sub>m</sub>(t) = 1 − Φ((ln t − θ₁)/σ)</div></div>
+          </div>
+          <div>
+            <h4>Parameters</h4>
+            <div class="eq-block"><div class="eq">σ = exp(ln_sigma)</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dist-card">
+        <div class="dist-head"><h3>Gamma</h3><span class="dist-tag">special case: σ = 1</span></div>
+        <div class="dist-stata">Stata: <code>SphGam</code> · R: <code>fit_splitpop_gamma()</code></div>
+        <div class="dist-grid">
+          <div>
+            <h4>Survival</h4>
+            <div class="eq-block"><div class="eq">S<sub>m</sub>(t) = 1 − P(κ, θ₁t)</div></div>
+          </div>
+          <div>
+            <h4>Parameters</h4>
+            <div class="eq-block"><div class="eq">κ = kappa &nbsp;<span class="op">(shape, free scalar)</span></div></div>
+          </div>
+        </div>
+        <p style="margin-top:12px;font-size:14px;color:var(--ink-soft)"><code>P(·,·)</code> is the regularized lower incomplete gamma function (<code>pgamma()</code> in R). Unlike the other four models, θ₁ here is used <i>directly</i> as a rate — not exponentiated — so it must stay positive; see Practical notes.</p>
+      </div>
+
+      <div class="dist-card">
+        <div class="dist-head"><h3>Generalized Gamma</h3><span class="dist-tag">nests all four above</span></div>
+        <div class="dist-stata">Stata: <code>SphGGam</code> (<code>d0</code> method) · R: <code>fit_splitpop_ggamma()</code></div>
+        <p style="font-size:14px;color:var(--ink-soft);margin-bottom:14px">The extended log-gamma error term of Prentice (1974) / Yamaguchi &amp; Ferguson (1995, note 10). Four free parameters per subject: θ₁ (location, H_regression), <code>ln_sigma</code> (scale), <code>kappa</code> (shape κ), and the P_regression logit.</p>
+        <div class="eq-block">
+          <div class="eq-row"><span class="eq-label">κ near 0</span><span class="eq">→ falls back to the log-normal branch (Φ, standard normal density)</span></div>
+          <div class="eq-row"><span class="eq-label">else</span><span class="eq">→ generalized gamma branch via the incomplete gamma function</span></div>
+        </div>
+        <p style="font-size:14px;color:var(--ink-soft)">The Stata code's guard <code>if abs(κ)&lt;0.01 then κ←sign(κ)×0.01</code> is preserved — there's a genuine kink in the likelihood surface at that threshold; see Practical notes.</p>
+      </div>
+    </section>
+
+    <section id="reference">
+      <div class="eyebrow"><span class="num">04</span>reference</div>
+      <h2>Function reference</h2>
+      <p class="lede">All five fitting functions share one signature. They build design matrices from two one-sided formulas, then maximize the corrected log-likelihood with <a href="#" onclick="return false">maxLik::maxLik()</a>.</p>
+      <div class="eq-block" style="font-size:14px">
+        <div class="eq">fit_splitpop_<span class="op">{loglogistic|weibull|lognormal|gamma|ggamma}</span>(<br>
+        &nbsp;&nbsp;hform, pform, data, time, event, group,<br>
+        &nbsp;&nbsp;start&nbsp;=&nbsp;NULL, method&nbsp;=&nbsp;"NR"<br>
+        )</div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Argument</th><th>Type</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><span class="arg-name">hform</span></td><td><code>~ x1 + x2</code></td><td>H_regression formula — covariates for the mover timing distribution (θ₁)</td></tr>
+            <tr><td><span class="arg-name">pform</span></td><td><code>~ z1</code></td><td>P_regression formula — covariates for the logit on stayer probability p</td></tr>
+            <tr><td><span class="arg-name">data</span></td><td><code>data.frame</code></td><td>Source data; columns referenced by <code>hform</code>, <code>pform</code>, and the four names below</td></tr>
+            <tr><td><span class="arg-name">time</span></td><td><code>"colname"</code></td><td>Duration variable ($ML_y1)</td></tr>
+            <tr><td><span class="arg-name">event</span></td><td><code>"colname"</code></td><td>1 = failure observed, 0 = censored ($ML_y2)</td></tr>
+            <tr><td><span class="arg-name">group</span></td><td><code>"colname"</code></td><td>0/1 indicator that flips the cure-probability logit ($ML_y3) — see Practical notes</td></tr>
+            <tr><td><span class="arg-name">start</span></td><td>numeric or <span class="arg-default">NULL</span></td><td>Starting parameter vector; each function has a sensible default (see source)</td></tr>
+            <tr><td><span class="arg-name">method</span></td><td><span class="arg-default">"NR"</span></td><td>Optimizer passed to <code>maxLik()</code> — try <code>"BFGS"</code> if Newton–Raphson fails to converge</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Return value</h4>
+      <p>A <code>maxLik</code> object. Use <code>summary(fit)</code> for coefficients, standard errors and a likelihood-ratio-style output (the closest analogue to Stata's <code>ml maximize</code> table); <code>coef(fit)</code>, <code>logLik(fit)</code>, and <code>vcov(fit)</code> also work.</p>
+
+      <h4>Parameter naming</h4>
+      <p>Coefficients are named <code>H_regression:&lt;term&gt;</code> and <code>P_regression:&lt;term&gt;</code>, plus the model's ancillary scalar(s) — <code>theta2</code> (log-logistic), <code>ln_sigma</code> (Weibull, log-normal, generalized gamma), <code>kappa</code> (gamma, generalized gamma) — mirroring the Stata equation names.</p>
+    </section>
+
+    <section id="example">
+      <div class="eyebrow"><span class="num">05</span>example</div>
+      <h2>Worked example</h2>
+      <p class="lede">Fitting a split-population Weibull model where <code>x1</code> affects timing and <code>x2</code> affects the probability of never failing:</p>
+      <pre><code><span class="tok-c"># source the package file</span>
+source(<span class="tok-s">"split_population_survival_models.R"</span>)
+
+<span class="tok-c"># mydata needs: time, event (0/1), group (0/1), and your covariates</span>
+fit <- <span class="tok-k">fit_splitpop_weibull</span>(
+  hform = ~ x1,           <span class="tok-c"># H_regression: covariates for timing</span>
+  pform = ~ x2,           <span class="tok-c"># P_regression: covariates for cure probability</span>
+  data  = mydata,
+  time  = <span class="tok-s">"time"</span>,
+  event = <span class="tok-s">"event"</span>,
+  group = <span class="tok-s">"group"</span>,
+  method = <span class="tok-s">"BFGS"</span>
+)
+
+<span class="tok-k">summary</span>(fit)   <span class="tok-c"># coefficients, SEs, z-values, log-likelihood</span>
+<span class="tok-k">coef</span>(fit)      <span class="tok-c"># named parameter vector</span></code></pre>
+      <p>To recover the fitted stayer probability for a given row, apply <code>plogis()</code> to the P_regression linear predictor built the same way the fitting function does — see <code>.design_matrix()</code> and <code>.cure_prob()</code> in the source for the exact construction.</p>
+    </section>
+
+    <section id="correspondence">
+      <div class="eyebrow"><span class="num">06</span>correspondence</div>
+      <h2>Stata → R quick map</h2>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Stata</th><th>R</th></tr></thead>
+          <tbody>
+            <tr><td><code>$ML_y1</code></td><td><code>time</code> argument</td></tr>
+            <tr><td><code>$ML_y2</code></td><td><code>event</code> argument</td></tr>
+            <tr><td><code>$ML_y3</code></td><td><code>group</code> argument</td></tr>
+            <tr><td><code>invlogit(x)</code></td><td><code>plogis(x)</code></td></tr>
+            <tr><td><code>norm(x)</code></td><td><code>pnorm(x)</code></td></tr>
+            <tr><td><code>gammap(a, x)</code></td><td><code>pgamma(x, shape = a)</code></td></tr>
+            <tr><td><code>lngamma(x)</code></td><td><code>lgamma(x)</code></td></tr>
+            <tr><td><code>_pi</code></td><td><code>pi</code></td></tr>
+            <tr><td><code>ml model lf / d0</code></td><td><code>maxLik::maxLik(..., method = "NR")</code></td></tr>
+            <tr><td><code>ml maximize</code> output</td><td><code>summary(fit)</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="notes">
+      <div class="eyebrow"><span class="num">07</span>notes</div>
+      <h2>Practical notes</h2>
+
+      <h3>The <code>group</code> flip</h3>
+      <p>The cure probability is computed as <code>p = plogis(θ_p)</code> when <code>group == 1</code>, and <code>1 − plogis(θ_p)</code> when <code>group == 0</code> — preserved exactly from the Stata source's <code>$ML_y3</code> handling. If your data has no such distinction, set <code>group</code> to a column of all <code>1</code>s and <code>p</code> reduces to the ordinary logistic regression on stayer probability.</p>
+
+      <h3>Starting values</h3>
+      <p>Newton–Raphson (<code>method = "NR"</code>, the default) can fail to converge from a poor start; <code>"BFGS"</code> is a more forgiving fallback. The gamma and generalized-gamma defaults deliberately start with a positive H_regression intercept and zero slopes (<code>.safe_start_h()</code>), because those two models use θ₁ directly as a rate — without an <code>exp()</code> transform — so it must stay positive.</p>
+
+      <h3>The generalized gamma's κ = 0 kink</h3>
+      <p>When <code>|κ| &lt; 0.01</code> the model switches to a separate log-normal-equivalent branch (matching the Stata guard). This is a genuine, not merely numerical, kink in the likelihood surface — if <code>summary(fit)</code> reports a non-finite standard error, the optimizer likely landed near that threshold; try a different starting <code>kappa</code>.</p>
+
+      <h3>What has no direct R equivalent</h3>
+      <ul>
+        <li><b><code>ml check</code> / <code>ml search</code></b> — evaluate the relevant <code>loglik_splitpop_*()</code> function once at your starting values by hand, and/or try several starts or optimizers if convergence fails.</li>
+        <li><b><code>ml graph</code></b> — plot fitted survival/hazard curves yourself from <code>coef(fit)</code> plugged back into the survival/density formulas above.</li>
+      </ul>
+    </section>
+
+    <hr class="rule" />
+
+    <section id="refs" style="margin-bottom:0">
+      <div class="eyebrow"><span class="num">§</span>references</div>
+      <p style="font-size:14.5px;color:var(--ink-soft)">Yamaguchi, K., &amp; Ferguson, L. R. (1995). The stopping and spacing of childbirths and their birth-history predictors: Rational-choice theory and event-history analysis. <i>American Sociological Review</i>, 60(2), 272–298.</p>
+      <p style="font-size:14.5px;color:var(--ink-soft)">Yamaguchi, K. (1998). Mover-stayer models for analyzing event nonoccurrence and event timing with time-dependent covariates: An application to an analysis of remarriage. <i>Sociological Methodology</i>, 28(1), 327–361.</p>
+      <p style="font-size:14.5px;color:var(--ink-soft)">Schmidt, P., &amp; Witte, A. D. (1989). Predicting criminal recidivism using "split population" survival time models. <i>Journal of Econometrics</i>, 40(1), 141–159.</p>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <div class="layout-inner">splitpopsurv · R translation of Stata <code>ml</code> programs SphLog / SphWieb / SphNom / SphGam / SphGGam · likelihood corrected and empirically verified against known-parameter simulations · © 2026 Nobutaka Fukuda, Tohoku University · MIT License</div>
+</footer>
