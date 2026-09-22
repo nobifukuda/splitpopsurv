@@ -514,7 +514,7 @@ fit <- <span class="tok-k">fit_splitpop_weibull</span>(
       <h3>Starting values</h3>
       <p>Newton–Raphson (<code>method = "NR"</code>, the default) can fail to converge from a poor start; <code>"BFGS"</code> is a more forgiving fallback. The gamma and generalized-gamma defaults deliberately start with a positive H_regression intercept and zero slopes (<code>.safe_start_h()</code>), because those two models use θ<sub>1</sub> directly as a rate — without an <code>exp()</code> transform — so it must stay positive.</p>
 
-      <h3>The generalized gamma's κ = 0 kink</h3>
+      <h3>The generalized gamma's kappa = 0 kink</h3>
       <p>When <code>|κ| &lt; 0.01</code> the model switches to a separate log-normal-equivalent branch (matching the Stata guard). This is a genuine, not merely numerical, kink in the likelihood surface — if <code>summary(fit)</code> reports a non-finite standard error, the optimizer likely landed near that threshold; try a different starting <code>kappa</code>.</p>
 
       <h3>What has no direct R equivalent</h3>
