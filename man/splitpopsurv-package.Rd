@@ -25,7 +25,6 @@ programs this package translates.
 Useful links:
 \itemize{
   \item \url{https://github.com/nobifukuda/splitpopsurv}
-  \item \url{https://nobifukuda.github.io/splitpopsurv/}
   \item Report bugs at \url{https://github.com/nobifukuda/splitpopsurv/issues}
 }
 
