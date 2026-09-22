@@ -13,7 +13,7 @@ programs, with the log-likelihood corrected to match the published model
 and verified by simulation against known parameters.
 
 📖 **Full manual** (theory, formulas, the likelihood correction, and a
-complete function reference): [`docs/manual.html`](https://github.com/nobifukuda/splitpopsurv/blob/main/docs/manual.html)
+complete function reference): [`docs/manual.html`](https://htmlpreview.github.io/?https://github.com/nobifukuda/splitpopsurv/blob/main/docs/manual.html)
 
 ## Author
 
@@ -59,11 +59,11 @@ Yamaguchi's own published model. This was confirmed by fitting simulated
 data with known parameters: the as-translated formula gives visibly biased
 estimates (especially for the cure-probability coefficients), while the
 corrected formula implemented here recovers the true parameters accurately.
-See [`docs/manual.html`](https://github.com/nobifukuda/splitpopsurv/blob/main/docs/manual.html#correction) for the full
+See [`docs/manual.html`](https://htmlpreview.github.io/?https://github.com/nobifukuda/splitpopsurv/blob/main/docs/manual.html#correction) for the full
 derivation and the simulation results.
 
-A companion Stata command implementing the same corrected models is also
-available; see the author's contact details below.
+A companion [Stata command](https://github.com/nobifukuda/splitpopsurv-stata)
+implementing the same corrected models is also available.
 
 ## License
 
